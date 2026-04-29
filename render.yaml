@@ -1,0 +1,17 @@
+# EyeSpy v3 — Render Deploy Config
+# One-click deploy: push to GitHub, connect via Render dashboard
+
+services:
+  - type: web
+    name: eyespy-api
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: EYESPY_SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: "3.11"
+    healthCheckPath: /

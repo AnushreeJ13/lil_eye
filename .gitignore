@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.env
+
+# Database (local dev only — regenerated on first run)
+eyespy.db
+
+# Legacy files (not part of v3)
+app.py
+server.py
+dlib-*.whl
+models/shape_predictor_*
+packages.txt
+runtime.txt
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
