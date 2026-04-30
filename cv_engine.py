@@ -19,6 +19,8 @@ import time
 from dataclasses import dataclass, field, asdict
 from typing import Optional
 
+_global_face_mesh = None
+
 
 @dataclass
 class DetectionResult:
@@ -118,13 +120,20 @@ class DrowsinessEngine:
         self.head_yaw_limit = head_yaw_limit
 
         # ── MediaPipe Face Mesh ──
-        self.mp_face_mesh = mp.solutions.face_mesh
-        self.face_mesh = self.mp_face_mesh.FaceMesh(
-            max_num_faces=1,
-            refine_landmarks=True,  # enables iris landmarks (478 total)
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5,
-        )
+        # Use a global instance to prevent OOM errors on limited memory instances (Render free tier)
+        global _global_face_mesh
+        if _global_face_mesh is None:
+            self.mp_face_mesh = mp.solutions.face_mesh
+            _global_face_mesh = self.mp_face_mesh.FaceMesh(
+                max_num_faces=1,
+                refine_landmarks=True,
+                min_detection_confidence=0.5,
+                min_tracking_confidence=0.5,
+            )
+        else:
+            self.mp_face_mesh = mp.solutions.face_mesh
+            
+        self.face_mesh = _global_face_mesh
 
         # ── Tracking State ──
         self.frame_count = 0
