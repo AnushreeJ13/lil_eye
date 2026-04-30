@@ -237,18 +237,28 @@ async def ws_detect(websocket: WebSocket):
                     continue
 
                 # Process through CV engine
-                annotated, result = engine.process_frame(frame)
+                try:
+                    annotated, result = engine.process_frame(frame)
+                except Exception as e:
+                    print(f"Engine processing error: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    continue
 
                 # Encode annotated frame back to base64 JPEG
-                _, buffer = cv2.imencode(".jpg", annotated, [cv2.IMWRITE_JPEG_QUALITY, 75])
-                frame_b64_out = base64.b64encode(buffer).decode("utf-8")
+                try:
+                    _, buffer = cv2.imencode(".jpg", annotated, [cv2.IMWRITE_JPEG_QUALITY, 75])
+                    frame_b64_out = base64.b64encode(buffer).decode("utf-8")
 
-                response = {
-                    "type": "detection",
-                    "metrics": result.to_dict(),
-                    "frame": frame_b64_out,
-                }
-                await websocket.send_text(json.dumps(response))
+                    response = {
+                        "type": "detection",
+                        "metrics": result.to_dict(),
+                        "frame": frame_b64_out,
+                    }
+                    await websocket.send_text(json.dumps(response))
+                except Exception as e:
+                    print(f"Response encoding/sending error: {e}")
+                    continue
 
             elif msg_type == "reset":
                 engine.reset()
