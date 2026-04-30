@@ -13,6 +13,16 @@ Uses MediaPipe Face Mesh (478 landmarks) for:
 import cv2
 import numpy as np
 import mediapipe as mp
+# Force-load submodules to prevent 'module has no attribute solutions' error on Render
+try:
+    import mediapipe.python.solutions.face_mesh as mp_face_mesh
+    import mediapipe.python.solutions.drawing_utils as mp_drawing
+    import mediapipe.python.solutions.drawing_styles as mp_drawing_styles
+except ImportError:
+    # Fallback for different versions/paths
+    mp_face_mesh = mp.solutions.face_mesh
+    mp_drawing = mp.solutions.drawing_utils
+    mp_drawing_styles = mp.solutions.drawing_styles
 # from scipy.spatial import distance as dist  # Removed unused heavy dependency
 from collections import deque
 import time
@@ -124,9 +134,9 @@ class DrowsinessEngine:
         global _global_face_mesh
         try:
             if _global_face_mesh is None:
-                print("Initializing MediaPipe FaceMesh singleton...")
-                self.mp_face_mesh = mp.solutions.face_mesh
-                _global_face_mesh = self.mp_face_mesh.FaceMesh(
+                print(f"Initializing MediaPipe FaceMesh singleton (Package path: {mp.__file__})...")
+                # Use the directly imported modules
+                _global_face_mesh = mp_face_mesh.FaceMesh(
                     max_num_faces=1,
                     refine_landmarks=True,
                     min_detection_confidence=0.5,
@@ -134,9 +144,11 @@ class DrowsinessEngine:
                 )
                 print("MediaPipe FaceMesh successfully initialized.")
             else:
-                self.mp_face_mesh = mp.solutions.face_mesh
+                pass
             
             self.face_mesh = _global_face_mesh
+            self.mp_drawing = mp_drawing
+            self.mp_drawing_styles = mp_drawing_styles
         except Exception as e:
             print(f"FATAL ERROR initializing MediaPipe: {e}")
             self.face_mesh = None
