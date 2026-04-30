@@ -13,16 +13,31 @@ Uses MediaPipe Face Mesh (478 landmarks) for:
 import cv2
 import numpy as np
 import mediapipe as mp
-# Force-load submodules to prevent 'module has no attribute solutions' error on Render
+
+# Aggressive fallback logic for MediaPipe imports on cloud environments
 try:
     import mediapipe.python.solutions.face_mesh as mp_face_mesh
     import mediapipe.python.solutions.drawing_utils as mp_drawing
     import mediapipe.python.solutions.drawing_styles as mp_drawing_styles
-except ImportError:
-    # Fallback for different versions/paths
-    mp_face_mesh = mp.solutions.face_mesh
-    mp_drawing = mp.solutions.drawing_utils
-    mp_drawing_styles = mp.solutions.drawing_styles
+    print("MediaPipe: Loaded via mediapipe.python.solutions")
+except (ImportError, ModuleNotFoundError):
+    try:
+        from mediapipe.solutions import face_mesh as mp_face_mesh
+        from mediapipe.solutions import drawing_utils as mp_drawing
+        from mediapipe.solutions import drawing_styles as mp_drawing_styles
+        print("MediaPipe: Loaded via mediapipe.solutions")
+    except (ImportError, AttributeError):
+        try:
+            import mediapipe.tasks.python.vision as mp_vision
+            mp_face_mesh = mp_vision.FaceLandmarker
+            mp_drawing = None
+            mp_drawing_styles = None
+            print("MediaPipe: Loaded via mediapipe.tasks (fallback)")
+        except:
+            mp_face_mesh = None
+            mp_drawing = None
+            mp_drawing_styles = None
+            print("MediaPipe: All import attempts failed.")
 # from scipy.spatial import distance as dist  # Removed unused heavy dependency
 from collections import deque
 import time
