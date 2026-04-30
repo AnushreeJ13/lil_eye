@@ -8,7 +8,6 @@ python-multipart==0.0.9
 
 # Computer Vision (MediaPipe — no dlib dependency)
 mediapipe==0.10.11
-mediapipe-python==0.10.11
 opencv-python-headless>=4.10.0
 numpy>=1.26.4
 protobuf<5,>=3.20.2
