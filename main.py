@@ -206,6 +206,7 @@ async def ws_detect(websocket: WebSocket):
     """
     await websocket.accept()
     conn_id = str(id(websocket))
+    print(f"New detection connection accepted: {conn_id}")
     engine = DrowsinessEngine()
     engines[conn_id] = engine
 
