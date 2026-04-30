@@ -14,30 +14,31 @@ import cv2
 import numpy as np
 import mediapipe as mp
 
-# Aggressive fallback logic for MediaPipe imports on cloud environments
+import mediapipe as mp
+
+# "Nuclear" import strategy: bypass the broken 'solutions' shortcut entirely
+# We go straight to the internal python wrappers
+mp_face_mesh = None
+mp_drawing = None
+mp_drawing_styles = None
+
 try:
-    import mediapipe.python.solutions.face_mesh as mp_face_mesh
-    import mediapipe.python.solutions.drawing_utils as mp_drawing
-    import mediapipe.python.solutions.drawing_styles as mp_drawing_styles
-    print("MediaPipe: Loaded via mediapipe.python.solutions")
-except (ImportError, ModuleNotFoundError):
+    from mediapipe.python.solutions import face_mesh as _fm
+    from mediapipe.python.solutions import drawing_utils as _du
+    from mediapipe.python.solutions import drawing_styles as _ds
+    mp_face_mesh = _fm
+    mp_drawing = _du
+    mp_drawing_styles = _ds
+    print("MediaPipe: Successfully bypassed attribute error via direct internal import.")
+except Exception as e:
+    print(f"MediaPipe: Direct internal import failed ({e}). Trying secondary fallback...")
     try:
-        from mediapipe.solutions import face_mesh as mp_face_mesh
-        from mediapipe.solutions import drawing_utils as mp_drawing
-        from mediapipe.solutions import drawing_styles as mp_drawing_styles
-        print("MediaPipe: Loaded via mediapipe.solutions")
-    except (ImportError, AttributeError):
-        try:
-            import mediapipe.tasks.python.vision as mp_vision
-            mp_face_mesh = mp_vision.FaceLandmarker
-            mp_drawing = None
-            mp_drawing_styles = None
-            print("MediaPipe: Loaded via mediapipe.tasks (fallback)")
-        except:
-            mp_face_mesh = None
-            mp_drawing = None
-            mp_drawing_styles = None
-            print("MediaPipe: All import attempts failed.")
+        # Last ditch effort: try the top-level if it exists
+        import mediapipe.solutions.face_mesh as _fm
+        mp_face_mesh = _fm
+        print("MediaPipe: Loaded via top-level solutions.")
+    except:
+        print("MediaPipe: ALL IMPORT PATHS FAILED.")
 # from scipy.spatial import distance as dist  # Removed unused heavy dependency
 from collections import deque
 import time
