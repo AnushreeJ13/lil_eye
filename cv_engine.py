@@ -213,29 +213,27 @@ class DrowsinessEngine:
 
     # ── Core Metric Calculations ─────────────────────────────────────
 
-    @staticmethod
-    def _ear(eye_points: np.ndarray) -> float:
-        """
-        Eye Aspect Ratio.
-        eye_points: 6 (x,y) points [p1..p6]
-        EAR = (||p2-p6|| + ||p3-p5||) / (2 * ||p1-p4||)
-        """
-        A = dist.euclidean(eye_points[1], eye_points[5])
-        B = dist.euclidean(eye_points[2], eye_points[4])
-        C = dist.euclidean(eye_points[0], eye_points[3])
+    def _ear(self, eye_points: np.ndarray) -> float:
+        """Compute Eye Aspect Ratio."""
+        # Vertical distances
+        A = np.linalg.norm(eye_points[1] - eye_points[5])
+        B = np.linalg.norm(eye_points[2] - eye_points[4])
+        # Horizontal distance
+        C = np.linalg.norm(eye_points[0] - eye_points[3])
         return (A + B) / (2.0 * C) if C > 0 else 0.0
 
-    @staticmethod
-    def _mar(vert_top: np.ndarray, vert_bot: np.ndarray,
-             left: np.ndarray, right: np.ndarray) -> float:
-        """
-        Mouth Aspect Ratio — yawn indicator.
-        Average of vertical distances / horizontal distance.
-        """
-        vert_dists = [dist.euclidean(t, b) for t, b in zip(vert_top, vert_bot)]
-        avg_vert = np.mean(vert_dists)
-        horiz = dist.euclidean(left, right)
-        return avg_vert / horiz if horiz > 0 else 0.0
+    def _mar(
+        self, vert_top: np.ndarray, vert_bot: np.ndarray,
+        mouth_l: np.ndarray, mouth_r: np.ndarray
+    ) -> float:
+        """Compute Mouth Aspect Ratio."""
+        # Vertical (average of 3 pairs if possible, here we use center)
+        mid_top = np.mean(vert_top, axis=0)
+        mid_bot = np.mean(vert_bot, axis=0)
+        A = np.linalg.norm(mid_top - mid_bot)
+        # Horizontal
+        C = np.linalg.norm(mouth_l - mouth_r)
+        return A / C if C > 0 else 0.0
 
     def _compute_perclos(self, eyes_closed: bool) -> float:
         """
