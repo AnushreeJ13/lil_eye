@@ -13,7 +13,7 @@ Uses MediaPipe Face Mesh (478 landmarks) for:
 import cv2
 import numpy as np
 import mediapipe as mp
-from scipy.spatial import distance as dist
+# from scipy.spatial import distance as dist  # Removed unused heavy dependency
 from collections import deque
 import time
 from dataclasses import dataclass, field, asdict
@@ -122,18 +122,24 @@ class DrowsinessEngine:
         # ── MediaPipe Face Mesh ──
         # Use a global instance to prevent OOM errors on limited memory instances (Render free tier)
         global _global_face_mesh
-        if _global_face_mesh is None:
-            self.mp_face_mesh = mp.solutions.face_mesh
-            _global_face_mesh = self.mp_face_mesh.FaceMesh(
-                max_num_faces=1,
-                refine_landmarks=True,
-                min_detection_confidence=0.5,
-                min_tracking_confidence=0.5,
-            )
-        else:
-            self.mp_face_mesh = mp.solutions.face_mesh
+        try:
+            if _global_face_mesh is None:
+                print("Initializing MediaPipe FaceMesh singleton...")
+                self.mp_face_mesh = mp.solutions.face_mesh
+                _global_face_mesh = self.mp_face_mesh.FaceMesh(
+                    max_num_faces=1,
+                    refine_landmarks=True,
+                    min_detection_confidence=0.5,
+                    min_tracking_confidence=0.5,
+                )
+                print("MediaPipe FaceMesh successfully initialized.")
+            else:
+                self.mp_face_mesh = mp.solutions.face_mesh
             
-        self.face_mesh = _global_face_mesh
+            self.face_mesh = _global_face_mesh
+        except Exception as e:
+            print(f"FATAL ERROR initializing MediaPipe: {e}")
+            self.face_mesh = None
 
         # ── Tracking State ──
         self.frame_count = 0
@@ -356,6 +362,9 @@ class DrowsinessEngine:
         h, w = frame.shape[:2]
 
         # Convert BGR → RGB for MediaPipe
+        if self.face_mesh is None:
+            return frame, result
+
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         rgb.flags.writeable = False
         mp_results = self.face_mesh.process(rgb)
