@@ -150,7 +150,13 @@ class DrowsinessEngine:
         try:
             if _global_face_mesh is None:
                 print(f"Initializing MediaPipe FaceMesh singleton (Package path: {mp.__file__})...")
-                # Use the directly imported modules
+                
+                # Check for module existence before calling
+                if mp_face_mesh is None:
+                    print("ERROR: All MediaPipe import paths failed. Detection will be disabled.")
+                    self.face_mesh = None
+                    return
+
                 _global_face_mesh = mp_face_mesh.FaceMesh(
                     max_num_faces=1,
                     refine_landmarks=True,
@@ -165,7 +171,9 @@ class DrowsinessEngine:
             self.mp_drawing = mp_drawing
             self.mp_drawing_styles = mp_drawing_styles
         except Exception as e:
-            print(f"FATAL ERROR initializing MediaPipe: {e}")
+            print(f"FATAL ERROR during FaceMesh initialization: {e}")
+            import traceback
+            traceback.print_exc()
             self.face_mesh = None
 
         # ── Tracking State ──
