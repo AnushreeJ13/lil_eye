@@ -128,13 +128,13 @@ class DrowsinessEngine:
 
     def __init__(
         self,
-        ear_threshold: float = 0.22,
-        mar_threshold: float = 0.65,
-        consec_frames: int = 15,
+        ear_threshold: float = 0.18,
+        mar_threshold: float = 0.75,
+        consec_frames: int = 5,
         perclos_window_sec: float = 60.0,
-        perclos_alert_pct: float = 40.0,
-        head_pitch_limit: float = 20.0,
-        head_yaw_limit: float = 25.0,
+        perclos_alert_pct: float = 45.0,
+        head_pitch_limit: float = 25.0,
+        head_yaw_limit: float = 30.0,
     ):
         # ── Thresholds ──
         self.ear_threshold = ear_threshold
